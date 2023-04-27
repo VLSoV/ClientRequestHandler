@@ -99,12 +99,20 @@
     <Compile Include="Data\DBWorker.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\Request.cs" />
+    <Compile Include="ViewModels\AddClientWindowViewModel.cs" />
     <Compile Include="ViewModels\ClientWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
+    <Compile Include="Views\AddClientWindow.xaml.cs">
+      <DependentUpon>AddClientWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\RequestWindow.xaml.cs">
       <DependentUpon>RequestWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\AddClientWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ClientWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

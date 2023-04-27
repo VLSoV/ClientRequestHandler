@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
+using ClientRequestHandler.Views;
 
 namespace ClientRequestHandler.ViewModels
 {
@@ -78,7 +79,7 @@ namespace ClientRequestHandler.ViewModels
                 DBWorker.CreateData();
 
 
-                ClientWindow clientWindow = new ClientWindow();
+                AddClientWindow clientWindow = new AddClientWindow();
                 clientWindow.Show();
 
             }
