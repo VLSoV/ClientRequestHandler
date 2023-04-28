@@ -12,8 +12,21 @@
         <vm:MainWindowViewModel/>
     </Window.DataContext>
     <Grid Background="DarkGray">
-        <TabControl Margin="5" Background="LightGray"
-                    SelectedIndex="{Binding SelectedTabIndex}">
+        <Menu VerticalAlignment="Top" Height="20">
+            <MenuItem Header="Редактировать...">
+                <MenuItem Header="Клиенты">
+                    <MenuItem Header="Добавить записи" Command="{Binding OpenAddClientCommand}"/>
+                    <MenuItem Header="Изменить/Удалить записи" Command="{Binding OpenEditClientCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Заявки">
+                    <MenuItem Header="Добавить записи"/>
+                    <MenuItem Header="Удалить записи"/>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <TabControl Background="LightGray" 
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    Margin="5 25 5 5">
             <TabItem Header="Клиенты">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -25,8 +38,6 @@
                         <RowDefinition/>
                         <RowDefinition Height="150px"/>
                     </Grid.RowDefinitions>
-                    <TextBox Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-                             Text="{Binding CurrentNote, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="Список клиентов"/>
                     <DataGrid Grid.Row="1" Grid.Column="0"
@@ -50,7 +61,7 @@
                     </DataGrid>
 
                     <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
-                               Text="{Binding SelectedClient.ItemArray[1], StringFormat=Список заявок клиента {0}, FallbackValue=Список заявок}"/>
+                               Text="{Binding SelectedClient.Name, StringFormat=Список заявок клиента {0}, FallbackValue=Список заявок}"/>
                     <DataGrid Grid.Row="1" Grid.Column="1" 
                               ItemsSource="{Binding Requests}"
                               IsReadOnly="True"
@@ -71,7 +82,7 @@
                     
                     <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                TextWrapping="Wrap" 
-                               Text="{Binding CurrentNote, FallbackValue=Выберите клиента, TargetNullValue=У данного клиента нет примечания}" 
+                               Text="{Binding SelectedClient.Note, StringFormat=Примечание: {0}, FallbackValue=Выберите клиента, TargetNullValue=У данного клиента нет примечания}" 
                                Margin="5"/>
                 </Grid>
             </TabItem>
@@ -104,6 +115,16 @@
                             <DataGridTextColumn Header="Наименование работ" Binding="{Binding Name}"/>
                             <DataGridTextColumn Header="Описание работ" Binding="{Binding Description}"/>
                             <DataGridTextColumn Header="Статус" Binding="{Binding Status}"/>
+                            <!--<DataGridTemplateColumn Header="Статус" >
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox Text="{Binding Status}" />
+                                        --><!--<ComboBox ItemsSource="{Binding DataContext.People, RelativeSource={RelativeSource AncestorType=DataGrid}}" Text="{Binding Status}"
+                                                DisplayMemberPath="Name" SelectedValue="{Binding Age}" />-->
+                                        <!--<TextBlock Text="{Binding Status}"/>--><!--
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>-->
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

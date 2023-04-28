@@ -1,10 +1,14 @@
-﻿using MySql.Data.MySqlClient;
+﻿using ClientRequestHandler.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ClientRequestHandler.Data
 {
@@ -12,6 +16,39 @@ namespace ClientRequestHandler.Data
     {
         /// <summary>Строка подключения к базе данных</summary>
         static string ConnectionString = "server=localhost;user=root;database=test1;password=root;";
+
+        #region Clients
+        private static ObservableCollection<Client> _Clients = new ObservableCollection<Client>();
+        /// <summary>Таблица клиентов</summary>
+        public static ObservableCollection<Client> Clients
+        {
+            get
+            {
+                DataTable dt = DBWorker.GetTable("clients", "", "ORDER BY Name");
+                _Clients.Clear();
+                foreach (DataRow row in dt.Rows)
+                {
+                    _Clients.Add(new Client(row));
+                }
+                return _Clients;
+            }
+        }
+        #endregion
+
+        #region Requests
+        private static ObservableCollection<Request> _Requests = new ObservableCollection<Request>();
+        /// <summary>Таблица заявок</summary>
+        public static ObservableCollection<Request> Requests(Client selectedClient = null)
+        {
+            DataTable dt = DBWorker.GetTable("requests", (selectedClient is null) ? "" : $"WHERE ClientId = {selectedClient.Id}", "ORDER BY StartDate DESC");
+            _Requests.Clear();
+            foreach (DataRow row in dt.Rows)
+            {
+                _Requests.Add(new Request(row));
+            }
+            return _Requests;
+        }
+        #endregion
 
         #region GetTable
         /// <summary>Загрузить таблицу из базы данных</summary>
@@ -32,23 +69,108 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
-        public static void InsertData(DataTable data, string tableName)
+        #region InsertData
+        /// <summary>Вставить данные в таблицу базы данных</summary>
+        /// <param name="data">Данные</param>
+        public static void InsertData(IEnumerable<object> data)
         {
-            string names = data.Columns.ToString();   
-            string sqlQuery = $"INSERT INTO {tableName}({names}) VALUES ";
-            foreach(DataRowCollection row in data.Rows)
+            if (data == null || !data.Any()) return;
+
+            string tableName;
+            if (data.First() is Client) tableName = "clients";
+            else if (data.First() is Request) tableName = "requests";
+            else throw new ArgumentException("Неизветная модель данных!");
+
+            StringBuilder sqlQuery = new StringBuilder($"INSERT INTO {tableName} (");  
+            foreach(PropertyInfo prop in data.First().GetType().GetProperties())
             {
-                sqlQuery += row.ToString();
+                sqlQuery.Append(prop.Name + ',');
             }
+            sqlQuery.Length--;
+            sqlQuery.Append(") VALUES ");
 
-            //MySqlConnection connection = new MySqlConnection(ConnectionString);
-            //connection.Open();
-            //new MySqlCommand($"INSERT INTO {tableName}(Name,INN,ActivityField,RequestCount,LastRequestDate,Note) " +
-            //    $"VALUES ('Ivan','5956008835','ajfdgjhah',DEFAULT,NOW(),'4dfjthhber');", connection).ExecuteNonQuery();
-            //connection.Close();
+            foreach (object dataInstance in data)
+            {
+                sqlQuery.Append('(');
+                foreach (PropertyInfo prop in dataInstance.GetType().GetProperties())
+                {
+                    if(prop.PropertyType == typeof(string)) sqlQuery.Append('\"' + prop.GetValue(dataInstance)?.ToString() + "\",");
+                    if(prop.PropertyType == typeof(int)) sqlQuery.Append(prop.GetValue(dataInstance)?.ToString() + ',');
+                    if(prop.PropertyType == typeof(DateTime)) sqlQuery.Append(((DateTime)prop.GetValue(dataInstance)).ToString("'\"'yyyy'-'MM'-'dd HH':'mm':'ss'\",'")); //'2022-01-01 00:00:00.000000'
+                }
+                sqlQuery.Length--;
+                sqlQuery.Append("),");
+            }
+            sqlQuery.Length--;
+            sqlQuery.Append(";");
+
+            MySqlConnection connection = new MySqlConnection(ConnectionString);
+            connection.Open();
+            new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
+            connection.Close();
+
+            foreach (object dataInstance in data)
+            {
+                if(dataInstance is Client) _Clients.Add((Client)dataInstance);
+                if(dataInstance is Request) _Requests.Add((Request)dataInstance);
+            }
         }
+        #endregion
 
-        # region CreateData
+        #region DeleteData
+        /// <summary>Удалить строку из базы данных</summary>
+        /// <param name="instance">Объект данных</param>
+        public static void DeleteData(object instance)
+        {
+            if (instance == null) return;
+
+            string tableName;
+            if (instance is Client) tableName = "clients";
+            else if (instance is Request) tableName = "requests";
+            else throw new ArgumentException("Неизветная модель данных!");
+            string id = instance.GetType().GetProperties()[0].GetValue(instance).ToString();
+
+            string sqlQuery = $"DELETE FROM {tableName} WHERE Id={id}";
+
+
+            MySqlConnection connection = new MySqlConnection(ConnectionString);
+            connection.Open();
+            new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
+            connection.Close();
+        }
+        #endregion
+
+        #region UodateData
+        /// <summary>Удалить строку из базы данных</summary>
+        /// <param name="instance">Объект данных</param>
+        public static void UpdateData(object instance)
+        {
+            if (instance == null) return;
+
+            string tableName;
+            if (instance is Client) tableName = "clients";
+            else if (instance is Request) tableName = "requests";
+            else throw new ArgumentException("Неизветная модель данных!");
+            string id = instance.GetType().GetProperties()[0].GetValue(instance).ToString();
+
+            string sqlQuery = $"DELETE FROM {tableName} WHERE Id={id}";
+
+            try
+            {
+                MySqlConnection connection = new MySqlConnection(ConnectionString);
+                connection.Open();
+                new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Не удалось подключиться к базе данных!");
+            }
+        }        
+
+        #endregion
+
+        #region CreateData
         /// <summary>Созданиетаблиц и триггеров в бд</summary>
         public static void CreateData()
         {

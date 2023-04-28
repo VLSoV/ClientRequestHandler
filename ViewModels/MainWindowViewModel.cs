@@ -9,32 +9,24 @@ using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using ClientRequestHandler.Views;
+using System.Windows.Input;
+using ClientRequestHandler.Commands;
 
 namespace ClientRequestHandler.ViewModels
 {
     internal class MainWindowViewModel : ViewModel
     {
-        #region CurrentNote
-        /// <summary>Примечание к выбранному клиенту</summary>
-        string _CurrentNote;
-        /// <summary>Примечание к выбранному клиенту</summary>
-        public string CurrentNote 
-        { 
-            get => _CurrentNote; 
-            set => Set(ref _CurrentNote, value);
-        }
-        #endregion
 
         #region SelectedClient
         /// <summary>Выбранная строка в таблице клиентов</summary>
-        DataRow _SelectedClient;
+        Client _SelectedClient;
         /// <summary>Выбранная строка в таблице клиентов</summary>
-        public object SelectedClient
+        public Client SelectedClient
         {
             get => _SelectedClient;
             set
             {
-                Set(ref _SelectedClient, (DataRow)(value as DataRowView)?.Row);
+                Set(ref _SelectedClient, value);
                 OnPropertyChanged(nameof(Requests));
             }
         }
@@ -57,31 +49,36 @@ namespace ClientRequestHandler.ViewModels
         #endregion
 
         #region Clients
+        private ObservableCollection<Client> _Clients;
         /// <summary>Таблица клиентов</summary>
-        public DataTable Clients
+        public ObservableCollection<Client> Clients
         {
-            get => DBWorker.GetTable("clients", "", "ORDER BY Name");
+            get => DBWorker.Clients;
         }
         #endregion
 
         #region Requests
+        //private ObservableCollection<Request> _Requests;
         /// <summary>Таблица заявок</summary>
-        public DataTable Requests
+        public ObservableCollection<Request> Requests
         {
-            get => DBWorker.GetTable("requests", (_SelectedClient is null) ? "" :  $"WHERE ClientId = {_SelectedClient["Id"]}", "ORDER BY StartDate DESC");
+            get => DBWorker.Requests(_SelectedClient);
         }
         #endregion
 
+        public ICommand OpenAddClientCommand { get; set; }
+        private void OnAddClientExecuted(object obj) => new AddClientWindow() { Owner = App.Current.MainWindow }.Show();
+
+        public ICommand OpenEditClientCommand { get; set; }
+        private void OnEditClientExecuted(object obj) => new EditClientWindow() { Owner = App.Current.MainWindow }.Show();
+
         public MainWindowViewModel()
         {
+            OpenAddClientCommand = new RelayCommand(OnAddClientExecuted);
+            OpenEditClientCommand = new RelayCommand(OnEditClientExecuted);
             try
             {
                 DBWorker.CreateData();
-
-
-                AddClientWindow clientWindow = new AddClientWindow();
-                clientWindow.Show();
-
             }
             catch (Exception ex)
             {

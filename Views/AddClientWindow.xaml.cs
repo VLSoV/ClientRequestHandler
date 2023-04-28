@@ -21,7 +21,7 @@ namespace ClientRequestHandler.Views
     {
         public AddClientWindow()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
     }
 }
