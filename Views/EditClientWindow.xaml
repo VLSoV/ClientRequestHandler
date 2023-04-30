@@ -19,7 +19,7 @@
                               ItemsSource="{Binding Clients}"
                               SelectedItem="{Binding SelectedClient}"
                               CanUserAddRows="False"
-                                CanUserDeleteRows="True"
+                              CanUserDeleteRows="True"
                               AutoGenerateColumns="False" 
                               HorizontalAlignment="Center" 
                               Margin="5"
@@ -38,9 +38,9 @@
         <StackPanel Grid.Row="1" Grid.Column="0" 
                     Orientation="Horizontal"
                     HorizontalAlignment="Center">
-            <Button Content="Удалить выбранную запись"  Margin="5" Padding="5" 
+            <Button Content="Удалить выделенную строку"  Margin="5" Padding="5" 
                 Command="{Binding DeleteClientCommand}"/>
-            <Button Content="Изменить выбранную запись" Margin="150 5 5 5" Padding="5"
+            <Button Content="Изменить выделенную строку в базе данных" Margin="150 5 5 5" Padding="5"
                 Command="{Binding EditClientCommand}"/>
         </StackPanel>
     </Grid>

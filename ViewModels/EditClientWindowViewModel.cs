@@ -1,9 +1,7 @@
 ﻿using ClientRequestHandler.Commands;
 using ClientRequestHandler.Data;
 using ClientRequestHandler.Models;
-using System;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Windows;
 using System.Windows.Input;
 
@@ -26,24 +24,13 @@ namespace ClientRequestHandler.ViewModels
             }
         }
         #endregion
-
+        
         #region Clients
         /// <summary>Таблица клиентов</summary>
         private ObservableCollection<Client> _Clients;
         public ObservableCollection<Client> Clients
         {
-            get
-            {
-                if (_Clients != null) return _Clients;
-
-                DataTable dt = DBWorker.GetTable("clients", "", "ORDER BY Name");
-                _Clients = new ObservableCollection<Client>();
-                foreach (DataRow row in dt.Rows)
-                {
-                    _Clients.Add(new Client(row));
-                }
-                return _Clients;
-            }
+            get => DBWorker.Clients;
             set
             {
                 _Clients = value;
@@ -51,9 +38,7 @@ namespace ClientRequestHandler.ViewModels
         }
         #endregion
 
-
-
-
+        #region Commands
         /// <summary>Удаляет выбранного клиента</summary>
         public ICommand DeleteClientCommand { get; set; }
         private void OnDeleteClientExecuted(object obj)
@@ -70,7 +55,7 @@ namespace ClientRequestHandler.ViewModels
         {
             DBWorker.UpdateData(SelectedClient);
         }
-
+        #endregion
 
         public EditClientWindowViewModel()
         {

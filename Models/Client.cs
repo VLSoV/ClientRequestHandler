@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ClientRequestHandler.ViewModels;
+using System;
 using System.Data;
 
 namespace ClientRequestHandler.Models
 {
-    internal class Client
+    internal class Client : ViewModel
     {
         public Client() { }
         public Client(DataRow row)
@@ -16,13 +17,50 @@ namespace ClientRequestHandler.Models
             LastRequestDate = (DateTime)row.ItemArray[5];
             Note = (string)row.ItemArray[6];
         }
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string INN { get; set; }
-        public string ActivityField { get; set; }
-        public int RequestCount { get; set; }
-        public DateTime LastRequestDate { get; set; }
-        public string Note { get; set; }
 
+        public int Id
+        {
+            get => _Id;
+            set => Set(ref _Id, value);
+        }
+        public string Name 
+        {
+            get => _Name;
+            set => Set(ref _Name, value);
+        }
+        public string INN 
+        {
+            get => _INN;
+            set => Set(ref _INN, value);
+        }
+        public string ActivityField 
+        {
+            get => _ActivityField;
+            set => Set(ref _ActivityField, value);
+        }
+        public int RequestCount 
+        {
+            get => _RequestCount;
+            set => Set(ref _RequestCount, value);
+        }
+        public DateTime LastRequestDate 
+        {
+            get => _LastRequestDate;
+            set => Set(ref _LastRequestDate, value);
+        }
+        public string Note
+        {
+            get => _Note;
+            set => Set(ref _Note, value);
+        }
+
+
+        int _Id;
+        string _Name;
+        string _INN;
+        string _ActivityField;
+        int _RequestCount;
+        DateTime _LastRequestDate;
+        string _Note;
     }
 }

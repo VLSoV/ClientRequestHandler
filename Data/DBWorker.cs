@@ -69,9 +69,38 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
+        #region SendQuery
+        /// <summary>Отправить запрос на сервер</summary>
+        /// <param name="sqlQuery">Запрос к базе данныхс</param>
+        public static void SendQuery(string sqlQuery)
+        {
+            try
+            {
+                MySqlConnection connection = new MySqlConnection(ConnectionString);
+                connection.Open();
+                new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Не удалось подключиться к базе данных!");
+            }
+        }
+        #endregion
+
+
+        #region UpdateTables
+        /// <summary>Синхронизировать таблицы с базой данных</summary>
+        public static void UpdateTables()
+        {
+            var updClients = Clients;
+            var updRequests = Requests();
+        }
+        #endregion
+
         #region InsertData
         /// <summary>Вставить данные в таблицу базы данных</summary>
-        /// <param name="data">Данные</param>
+        /// <param name="data">Набор объектов с данными</param>
         public static void InsertData(IEnumerable<object> data)
         {
             if (data == null || !data.Any()) return;
@@ -82,7 +111,7 @@ namespace ClientRequestHandler.Data
             else throw new ArgumentException("Неизветная модель данных!");
 
             StringBuilder sqlQuery = new StringBuilder($"INSERT INTO {tableName} (");  
-            foreach(PropertyInfo prop in data.First().GetType().GetProperties())
+            foreach(PropertyInfo prop in data.First().GetType().GetProperties().OrderBy(x => x.MetadataToken))
             {
                 sqlQuery.Append(prop.Name + ',');
             }
@@ -92,11 +121,18 @@ namespace ClientRequestHandler.Data
             foreach (object dataInstance in data)
             {
                 sqlQuery.Append('(');
-                foreach (PropertyInfo prop in dataInstance.GetType().GetProperties())
+                foreach (PropertyInfo prop in dataInstance.GetType().GetProperties().OrderBy(x => x.MetadataToken))
                 {
-                    if(prop.PropertyType == typeof(string)) sqlQuery.Append('\"' + prop.GetValue(dataInstance)?.ToString() + "\",");
-                    if(prop.PropertyType == typeof(int)) sqlQuery.Append(prop.GetValue(dataInstance)?.ToString() + ',');
-                    if(prop.PropertyType == typeof(DateTime)) sqlQuery.Append(((DateTime)prop.GetValue(dataInstance)).ToString("'\"'yyyy'-'MM'-'dd HH':'mm':'ss'\",'")); //'2022-01-01 00:00:00.000000'
+                    if (prop.PropertyType == typeof(string)) 
+                        sqlQuery.Append('\"' + prop.GetValue(dataInstance)?.ToString() + "\",");
+
+                    else if (prop.PropertyType == typeof(int)) 
+                        sqlQuery.Append(prop.GetValue(dataInstance)?.ToString() + ',');
+
+                    else if (prop.PropertyType == typeof(DateTime)) 
+                        sqlQuery.Append(((DateTime)prop.GetValue(dataInstance)).ToString("'\"'yyyy'-'MM'-'dd HH':'mm':'ss'\",'")); //'2022-01-01 00:00:00.000000'
+
+                    else throw new ArgumentException("Неопределен тип свойства!");
                 }
                 sqlQuery.Length--;
                 sqlQuery.Append("),");
@@ -104,16 +140,8 @@ namespace ClientRequestHandler.Data
             sqlQuery.Length--;
             sqlQuery.Append(";");
 
-            MySqlConnection connection = new MySqlConnection(ConnectionString);
-            connection.Open();
-            new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
-            connection.Close();
-
-            foreach (object dataInstance in data)
-            {
-                if(dataInstance is Client) _Clients.Add((Client)dataInstance);
-                if(dataInstance is Request) _Requests.Add((Request)dataInstance);
-            }
+            SendQuery(sqlQuery.ToString());
+            UpdateTables();
         }
         #endregion
 
@@ -128,20 +156,17 @@ namespace ClientRequestHandler.Data
             if (instance is Client) tableName = "clients";
             else if (instance is Request) tableName = "requests";
             else throw new ArgumentException("Неизветная модель данных!");
-            string id = instance.GetType().GetProperties()[0].GetValue(instance).ToString();
+            string id = instance.GetType().GetProperties().Where(x => x.Name == "Id").First().GetValue(instance).ToString();
 
             string sqlQuery = $"DELETE FROM {tableName} WHERE Id={id}";
 
-
-            MySqlConnection connection = new MySqlConnection(ConnectionString);
-            connection.Open();
-            new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
-            connection.Close();
+            SendQuery(sqlQuery.ToString());
+            UpdateTables();
         }
         #endregion
 
         #region UodateData
-        /// <summary>Удалить строку из базы данных</summary>
+        /// <summary>Изменить строку в базе данных</summary>
         /// <param name="instance">Объект данных</param>
         public static void UpdateData(object instance)
         {
@@ -151,33 +176,37 @@ namespace ClientRequestHandler.Data
             if (instance is Client) tableName = "clients";
             else if (instance is Request) tableName = "requests";
             else throw new ArgumentException("Неизветная модель данных!");
-            string id = instance.GetType().GetProperties()[0].GetValue(instance).ToString();
+            string id = instance.GetType().GetProperties().Where(x => x.Name == "Id").First().GetValue(instance).ToString();
 
-            string sqlQuery = $"DELETE FROM {tableName} WHERE Id={id}";
-
-            try
+            StringBuilder sqlQuery = new StringBuilder($"UPDATE {tableName} SET ");
+            foreach (PropertyInfo prop in instance.GetType().GetProperties().OrderBy(x => x.MetadataToken))
             {
-                MySqlConnection connection = new MySqlConnection(ConnectionString);
-                connection.Open();
-                new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
-                connection.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Не удалось подключиться к базе данных!");
-            }
-        }        
+                if (prop.Name == "Id") continue;
 
+                if (prop.PropertyType == typeof(string)) 
+                    sqlQuery.Append($"{prop.Name} = \"{prop.GetValue(instance)?.ToString()}\",");
+
+                else if (prop.PropertyType == typeof(int)) 
+                    sqlQuery.Append($"{prop.Name} = {prop.GetValue(instance)?.ToString()},");
+
+                else if (prop.PropertyType == typeof(DateTime)) 
+                    sqlQuery.Append($"{prop.Name} = {((DateTime)prop.GetValue(instance)).ToString("'\"'yyyy'-'MM'-'dd HH':'mm':'ss'\",'")}"); //'2022-01-01 00:00:00.000000'
+
+                else throw new ArgumentException("Неопределен тип свойства!");
+            }
+            sqlQuery.Length--;
+            sqlQuery.Append($" WHERE Id={id};");
+
+            SendQuery(sqlQuery.ToString());
+            UpdateTables();
+        }
         #endregion
 
         #region CreateData
-        /// <summary>Созданиетаблиц и триггеров в бд</summary>
+        /// <summary>Создание таблиц и триггеров в бд</summary>
         public static void CreateData()
         {
-            MySqlConnection connection = new MySqlConnection(ConnectionString);
-            connection.Open();
-
-            new MySqlCommand(@"
+            string createTablesQuery = @"
                 DROP TABLE IF EXISTS requests;
 
                 DROP TABLE IF EXISTS clients;
@@ -202,10 +231,9 @@ namespace ClientRequestHandler.Data
                 Description TEXT,
                 Status ENUM('New','InWork','Complete'),
                 FOREIGN KEY (ClientId) REFERENCES clients(Id) ON DELETE RESTRICT
-                ); ", connection).ExecuteNonQuery();
+                ); ";
 
-
-            new MySqlCommand(@"
+            string createTriggersQuery = @"
                 DROP TRIGGER IF EXISTS AddRequest;
                 
                 DROP TRIGGER IF EXISTS DeleteRequest;
@@ -241,10 +269,9 @@ namespace ClientRequestHandler.Data
                     UPDATE clients
                     SET RequestCount = RequestCount-1
                     WHERE Id = OLD.ClientId;
-                END;
-                ", connection).ExecuteNonQuery();
-            //samples
-            new MySqlCommand(@"
+                END;";
+
+            string AddSamplesQuery = @"
                 INSERT INTO clients(Name,INN,ActivityField,RequestCount,LastRequestDate,Note) 
                 VALUES
                 ('Mike','5523157125','aehkfgkah',DEFAULT,NOW(),'faeahreber'),
@@ -255,9 +282,11 @@ namespace ClientRequestHandler.Data
                 (1,'2022-01-01 00:00:00.000000','work1','daeuajstrkiswu','New'),
                 (2,'2022-01-01 01:00:00.000000','work2','yae3w4ausrnwta','New'),
                 (2,'2024-01-01 02:00:00.000000','work3','aw4myay4weyawe','New');
-                ", connection).ExecuteNonQuery();
+                ";
 
-            connection.Close();
+            SendQuery(createTablesQuery);
+            SendQuery(createTriggersQuery);
+            SendQuery(AddSamplesQuery);
         }
         #endregion
     }

@@ -49,7 +49,6 @@ namespace ClientRequestHandler.ViewModels
         #endregion
 
         #region Clients
-        private ObservableCollection<Client> _Clients;
         /// <summary>Таблица клиентов</summary>
         public ObservableCollection<Client> Clients
         {
@@ -58,7 +57,6 @@ namespace ClientRequestHandler.ViewModels
         #endregion
 
         #region Requests
-        //private ObservableCollection<Request> _Requests;
         /// <summary>Таблица заявок</summary>
         public ObservableCollection<Request> Requests
         {
@@ -66,24 +64,22 @@ namespace ClientRequestHandler.ViewModels
         }
         #endregion
 
+        #region Commands
+        /// <summary>Открывает окно добавления клиента</summary>
         public ICommand OpenAddClientCommand { get; set; }
         private void OnAddClientExecuted(object obj) => new AddClientWindow() { Owner = App.Current.MainWindow }.Show();
 
+        /// <summary>Открывает окно редактирования/удаления клиента</summary>
         public ICommand OpenEditClientCommand { get; set; }
         private void OnEditClientExecuted(object obj) => new EditClientWindow() { Owner = App.Current.MainWindow }.Show();
+        #endregion
 
         public MainWindowViewModel()
         {
             OpenAddClientCommand = new RelayCommand(OnAddClientExecuted);
             OpenEditClientCommand = new RelayCommand(OnEditClientExecuted);
-            try
-            {
-                DBWorker.CreateData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Не удалось подключиться к базе данных!");
-            }
+
+            DBWorker.CreateData();
         }
     }
 }

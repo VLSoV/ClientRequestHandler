@@ -11,6 +11,10 @@
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Gesture="CTRL+C" Command="{Binding OpenAddClientCommand}"/>
+        <KeyBinding Gesture="CTRL+SHIFT+C" Command="{Binding OpenEditClientCommand}"/>
+    </Window.InputBindings>
     <Grid Background="DarkGray">
         <Menu VerticalAlignment="Top" Height="20">
             <MenuItem Header="Редактировать...">
@@ -114,17 +118,25 @@
                             <DataGridTextColumn Header="Дата заявки" Binding="{Binding StartDate}"/>
                             <DataGridTextColumn Header="Наименование работ" Binding="{Binding Name}"/>
                             <DataGridTextColumn Header="Описание работ" Binding="{Binding Description}"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding Status}"/>
-                            <!--<DataGridTemplateColumn Header="Статус" >
+                            <!--<DataGridTextColumn Header="Статус" Binding="{Binding Status}"/>-->
+                            <DataGridTemplateColumn Header="Статус" >
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox Text="{Binding Status}" />
-                                        --><!--<ComboBox ItemsSource="{Binding DataContext.People, RelativeSource={RelativeSource AncestorType=DataGrid}}" Text="{Binding Status}"
+                                        <ComboBox
+                                            ItemsSource="{Binding Status, UpdateSourceTrigger=PropertyChanged}">
+                                            <!--SelectedValue="{Binding Status, UpdateSourceTrigger=PropertyChanged}"-->
+                                            <!-- Добавьте сюда элементы ComboBox вместо ItemsSource Binding-->
+                                            <ComboBoxItem Content="Item 1"/>
+                                            <ComboBoxItem Content="Item 2"/>
+                                            <ComboBoxItem Content="Item 3"/>
+                                        </ComboBox>
+
+                                        <!--<ComboBox ItemsSource="{Binding DataContext.People, RelativeSource={RelativeSource AncestorType=DataGrid}}" Text="{Binding Status}"
                                                 DisplayMemberPath="Name" SelectedValue="{Binding Age}" />-->
-                                        <!--<TextBlock Text="{Binding Status}"/>--><!--
+                                        <!--<TextBlock Text="{Binding Status}"/>-->
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>-->
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
