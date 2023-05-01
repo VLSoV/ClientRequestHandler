@@ -38,6 +38,8 @@ namespace ClientRequestHandler.Data
         #region Requests
         private static ObservableCollection<Request> _Requests = new ObservableCollection<Request>();
         /// <summary>Таблица заявок</summary>
+        /// <param name="selectedClient">Клиент, с которым связаны заявки (если требуются заявки только определенного клиента)</param>
+        /// <returns></returns>
         public static ObservableCollection<Request> Requests(Client selectedClient = null)
         {
             DataTable dt = DBWorker.GetTable("requests", (selectedClient is null) ? "" : $"WHERE ClientId = {selectedClient.Id}", "ORDER BY StartDate DESC");
@@ -123,7 +125,7 @@ namespace ClientRequestHandler.Data
                 sqlQuery.Append('(');
                 foreach (PropertyInfo prop in dataInstance.GetType().GetProperties().OrderBy(x => x.MetadataToken))
                 {
-                    if (prop.PropertyType == typeof(string)) 
+                    if (prop.PropertyType == typeof(string) || prop.PropertyType == typeof(ProgressStatus)) 
                         sqlQuery.Append('\"' + prop.GetValue(dataInstance)?.ToString() + "\",");
 
                     else if (prop.PropertyType == typeof(int)) 
@@ -183,7 +185,7 @@ namespace ClientRequestHandler.Data
             {
                 if (prop.Name == "Id") continue;
 
-                if (prop.PropertyType == typeof(string)) 
+                if (prop.PropertyType == typeof(string) || prop.PropertyType == typeof(ProgressStatus)) 
                     sqlQuery.Append($"{prop.Name} = \"{prop.GetValue(instance)?.ToString()}\",");
 
                 else if (prop.PropertyType == typeof(int)) 
@@ -202,9 +204,9 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
-        #region CreateData
-        /// <summary>Создание таблиц и триггеров в бд</summary>
-        public static void CreateData()
+        #region CreateTables
+        /// <summary>Создание таблиц в бд</summary>
+        public static void CreateTables()
         {
             string createTablesQuery = @"
                 DROP TABLE IF EXISTS requests;
@@ -233,6 +235,14 @@ namespace ClientRequestHandler.Data
                 FOREIGN KEY (ClientId) REFERENCES clients(Id) ON DELETE RESTRICT
                 ); ";
 
+            SendQuery(createTablesQuery);
+        }
+        #endregion
+
+        #region CreateTriggers
+        /// <summary>Создание триггеров в бд</summary>
+        public static void CreateTriggers()
+        {
             string createTriggersQuery = @"
                 DROP TRIGGER IF EXISTS AddRequest;
                 
@@ -271,23 +281,62 @@ namespace ClientRequestHandler.Data
                     WHERE Id = OLD.ClientId;
                 END;";
 
-            string AddSamplesQuery = @"
-                INSERT INTO clients(Name,INN,ActivityField,RequestCount,LastRequestDate,Note) 
-                VALUES
-                ('Mike','5523157125','aehkfgkah',DEFAULT,NOW(),'faeahreber'),
-                ('Ivan','5956008835','ajfdgjhah',DEFAULT,NOW(),'4dfjthhber');
-
-                INSERT INTO requests(ClientId,StartDate,Name,Description,Status) 
-                VALUES
-                (1,'2022-01-01 00:00:00.000000','work1','daeuajstrkiswu','New'),
-                (2,'2022-01-01 01:00:00.000000','work2','yae3w4ausrnwta','New'),
-                (2,'2024-01-01 02:00:00.000000','work3','aw4myay4weyawe','New');
-                ";
-
-            SendQuery(createTablesQuery);
             SendQuery(createTriggersQuery);
-            SendQuery(AddSamplesQuery);
         }
         #endregion
+
+        #region GenerateData
+        /// <summary>Сгенерировать случайные данные</summary>
+        /// <param name="clientCount">Количество новых клиентов</param>
+        /// <param name="requestCount">Количество новых заявок</param>
+        public static void GenerateData(int clientCount, int requestCount)
+        {
+            Random rand = new Random();
+            List<Client> clients= new List<Client>(clientCount);
+            for (int i = 0; i < clientCount; i++)
+            {
+                clients.Add(new Client());
+                clients[i].Name = $"Клиент {i+1}";
+                clients[i].INN = GenerateString(rand, 10, "0123456789".ToArray());
+                clients[i].ActivityField = GenerateString(rand, 30);
+                clients[i].Note = GenerateString(rand, 500);
+            }
+            InsertData(clients);
+
+            List<Request> requests = new List<Request>(requestCount);
+            for (int i = 0; i < requestCount; i++)
+            {
+                requests.Add(new Request());
+                requests[i].ClientId = rand.Next(clientCount) + 1;
+                requests[i].StartDate = new DateTime(2010, 1, 1).AddDays(rand.Next(5000)).AddMinutes(rand.Next(5000)).AddSeconds(rand.Next(5000));
+                requests[i].Name = $"Заявка {i + 1}";
+                requests[i].Description = GenerateString(rand, 30);
+                requests[i].Status = (ProgressStatus)rand.Next(3);
+            }
+            InsertData(requests);
+        }
+
+        private static string GenerateString(Random rand, int size, char[] charSet = null)
+        {
+            if(charSet == null) //charSet = (Enumerable.Range('а', 'я' - 'а' + 1).Select(i => (Char)i)).ToArray();
+            {
+                charSet = new char[40];
+                for (int i = 0; i < charSet.Length; i++)
+                {
+                    if(i<32)//32 буквы кириллицы (без ё)
+                        charSet[i] = (char)((int)'а' + i);
+                    else
+                        charSet[i] = ' ';// пробелы для разделения "слов"
+                }
+            }
+            char[] res = new char[size];
+            for (int i = 0; i < size; i++)
+            {
+                res[i] = charSet[rand.Next(charSet.Length)];
+            }
+            return new string(res);
+        }
+        #endregion
+
     }
 }

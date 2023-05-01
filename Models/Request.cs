@@ -1,6 +1,10 @@
 ﻿using ClientRequestHandler.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
+using System.Reflection;
+using System.Windows.Data;
 
 namespace ClientRequestHandler.Models
 {
@@ -57,10 +61,35 @@ namespace ClientRequestHandler.Models
 
     }
 
-    enum ProgressStatus : byte
+    public enum ProgressStatus : byte
     {
         New,
         InWork,
         Complete
     }
+    //public class EnumToStringConverter : IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        if (value is Enum)
+    //        {
+    //            string name = Enum.GetName(value.GetType(), value);
+    //            FieldInfo field = value.GetType().GetField(name);
+    //            if (field != null)
+    //            {
+    //                ////DisplayAttribute attr = field.GetCustomAttribute<DisplayAttribute>();
+    //                //if (attr != null)
+    //                //{
+    //                //    return attr.Name;
+    //                //}
+    //            }
+    //        }
+    //        return value.ToString();
+    //    }
+
+    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

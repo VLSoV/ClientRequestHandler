@@ -41,7 +41,7 @@ namespace ClientRequestHandler.ViewModels
             get => _selectedTabIndex;
             set
             {
-                Set(ref _selectedTabIndex, _selectedTabIndex);
+                Set(ref _selectedTabIndex, value);
                 SelectedClient = null;
                 OnPropertyChanged(nameof(Requests));
             }
@@ -64,6 +64,13 @@ namespace ClientRequestHandler.ViewModels
         }
         #endregion
 
+        #region StatusList
+        public List<string> StatusList
+        {
+            get => new List<string>() { "Новая", "В работе", "Выполнена", "New", "InWork", "Complete" };
+        }
+        #endregion
+
         #region Commands
         /// <summary>Открывает окно добавления клиента</summary>
         public ICommand OpenAddClientCommand { get; set; }
@@ -79,7 +86,10 @@ namespace ClientRequestHandler.ViewModels
             OpenAddClientCommand = new RelayCommand(OnAddClientExecuted);
             OpenEditClientCommand = new RelayCommand(OnEditClientExecuted);
 
-            DBWorker.CreateData();
+            DBWorker.CreateTables();
+            DBWorker.CreateTriggers();
+            DBWorker.GenerateData(5,10);
+            SelectedTabIndex = 1;
         }
     }
 }
