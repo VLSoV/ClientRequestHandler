@@ -19,7 +19,7 @@
                               ItemsSource="{Binding Clients}"
                               SelectedItem="{Binding SelectedClient}"
                               CanUserAddRows="False"
-                              CanUserDeleteRows="True"
+                              CanUserDeleteRows="False"
                               AutoGenerateColumns="False" 
                               HorizontalAlignment="Center" 
                               Margin="5"

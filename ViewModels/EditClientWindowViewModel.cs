@@ -39,7 +39,7 @@ namespace ClientRequestHandler.ViewModels
         #endregion
 
         #region Commands
-        /// <summary>Удаляет выбранного клиента</summary>
+        /// <summary>Удаление выбранного клиента</summary>
         public ICommand DeleteClientCommand { get; set; }
         private void OnDeleteClientExecuted(object obj)
         {
@@ -49,11 +49,11 @@ namespace ClientRequestHandler.ViewModels
                 DBWorker.DeleteData(SelectedClient);
         }
 
-        /// <summary>Изменяет выбранного клиента</summary>
+        /// <summary>Изменение выбранного клиента</summary>
         public ICommand EditClientCommand { get; set; }
         private void OnEditClientExecuted(object obj)
         {
-            DBWorker.UpdateData(SelectedClient);
+            DBWorker.EditData(SelectedClient);
         }
         #endregion
 

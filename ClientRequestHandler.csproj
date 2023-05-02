@@ -102,6 +102,7 @@
     <Compile Include="ViewModels\AddClientWindowViewModel.cs" />
     <Compile Include="ViewModels\AddRequestWindowViewModel.cs" />
     <Compile Include="ViewModels\EditClientWindowViewModel.cs" />
+    <Compile Include="ViewModels\EditRequestWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
     <Compile Include="Views\AddClientWindow.xaml.cs">
@@ -112,6 +113,9 @@
     </Compile>
     <Compile Include="Views\EditClientWindow.xaml.cs">
       <DependentUpon>EditClientWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditRequestWindow.xaml.cs">
+      <DependentUpon>EditRequestWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\RequestWindow.xaml.cs">
       <DependentUpon>RequestWindow.xaml</DependentUpon>
@@ -125,6 +129,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EditClientWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditRequestWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

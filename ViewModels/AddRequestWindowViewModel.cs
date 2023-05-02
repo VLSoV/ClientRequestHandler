@@ -14,9 +14,31 @@ namespace ClientRequestHandler.ViewModels
 {
     internal class AddRequestWindowViewModel : ViewModel
     {
+        #region SelectedClient
+        Client _SelectedClient;
+        /// <summary>Выбранная строка в таблице клиентов</summary>
+        public Client SelectedClient
+        {
+            get => _SelectedClient;
+            set
+            {
+                Set(ref _SelectedClient, value);
+                OnPropertyChanged(nameof(Requests));
+            }
+        }
+        #endregion
+
+        #region Clients
+        /// <summary>Таблица клиентов</summary>
+        public ObservableCollection<Client> Clients
+        {
+            get => DBWorker.Clients;
+        }
+        #endregion
+
         #region Requests
         ObservableCollection<Request> _Requests = new ObservableCollection<Request>();
-        /// <summary>Список добавляемых клиентов</summary>
+        /// <summary>Список добавляемых заявок</summary>
         public ObservableCollection<Request> Requests
         {
             get => _Requests;
@@ -24,18 +46,32 @@ namespace ClientRequestHandler.ViewModels
         }
         #endregion
 
+        #region StatusList
+        /// <summary>Список вариантов статуса прогресса заявки</summary>
+        public List<string> StatusList
+        {
+            get => new List<string>() { "Новая", "В работе", "Выполнена" };
+        }
+        #endregion
+
         #region Commands
-        /// <summary>Добавляет новых клиентов в базу данных</summary>
+        /// <summary>Добавление новых заявок в базу данных</summary>
         public ICommand AddRequestCommand { get; set; }
         private void OnAddRequestExecuted(object obj)
         {
+            foreach(Request request in Requests)
+            {
+                request.ClientId = _SelectedClient.Id;
+            }
             DBWorker.InsertData(Requests);
+            var upd = DBWorker.Requests();//синхронизация заявки с бд
         }
+        private bool CanAddRequestExecute(object obj) => (_SelectedClient != null);
         #endregion
 
         public AddRequestWindowViewModel()
         {
-            AddRequestCommand = new RelayCommand(OnAddRequestExecuted);
+            AddRequestCommand = new RelayCommand(OnAddRequestExecuted, CanAddRequestExecute);
         }
     }
 }

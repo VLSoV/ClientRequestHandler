@@ -21,11 +21,12 @@ namespace ClientRequestHandler.ViewModels
         #endregion
 
         #region Commands
-        /// <summary>Добавляет новых клиентов в базу данных</summary>
+        /// <summary>Добавление новых клиентов в базу данных</summary>
         public ICommand AddClientCommand { get; set; }
         private void OnAddClientExecuted(object obj)
         {
             DBWorker.InsertData(Clients);
+            var upd = DBWorker.Clients;//синхронизируем клиентов с бд
         }
         private bool CanAddClientExecute(object obj) => (Clients.Count != 0);
         #endregion

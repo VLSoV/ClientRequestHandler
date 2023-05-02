@@ -1,10 +1,6 @@
 ﻿using ClientRequestHandler.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
-using System.Reflection;
-using System.Windows.Data;
 
 namespace ClientRequestHandler.Models
 {
@@ -18,7 +14,7 @@ namespace ClientRequestHandler.Models
             StartDate = (DateTime)row.ItemArray[2];
             Name = (string)row.ItemArray[3];
             Description = (string)row.ItemArray[4];
-            Status = (ProgressStatus)Enum.Parse(typeof(ProgressStatus), ((string)row.ItemArray[5]), true);
+            Status = (string)row.ItemArray[5];
         }
 
         public int Id
@@ -46,10 +42,22 @@ namespace ClientRequestHandler.Models
             get => _Description;
             set => Set(ref _Description, value);
         }
-        public ProgressStatus Status
+        public string Status
         {
-            get => _Status;
-            set => Set(ref _Status, value);
+            get
+            {
+                if (_Status == ProgressStatus.New) return "Новая";
+                else if (_Status == ProgressStatus.InWork) return "В работе";
+                else if (_Status == ProgressStatus.Complete) return "Выполнена";
+                else throw new ArgumentException("Не распознано значеие ProgressStatus");
+            }
+            set
+            {
+                if(value == "Новая") Set(ref _Status, ProgressStatus.New);
+                else if(value == "В работе") Set(ref _Status, ProgressStatus.InWork);
+                else if(value == "Выполнена") Set(ref _Status, ProgressStatus.Complete);
+                else throw new ArgumentException("Не распознано значеие ProgressStatus");
+            }
         }
 
         int _Id;

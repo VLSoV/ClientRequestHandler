@@ -39,7 +39,6 @@ namespace ClientRequestHandler.Data
         private static ObservableCollection<Request> _Requests = new ObservableCollection<Request>();
         /// <summary>Таблица заявок</summary>
         /// <param name="selectedClient">Клиент, с которым связаны заявки (если требуются заявки только определенного клиента)</param>
-        /// <returns></returns>
         public static ObservableCollection<Request> Requests(Client selectedClient = null)
         {
             DataTable dt = DBWorker.GetTable("requests", (selectedClient is null) ? "" : $"WHERE ClientId = {selectedClient.Id}", "ORDER BY StartDate DESC");
@@ -53,7 +52,7 @@ namespace ClientRequestHandler.Data
         #endregion
 
         #region GetTable
-        /// <summary>Загрузить таблицу из базы данных</summary>
+        /// <summary>Загрузка таблицы из базы данных</summary>
         /// <param name="tableName">Название таблицы</param>
         /// <param name="whereStr">Фильтр WHERE(если есть)</param>
         /// <param name="orderByStr">Сортировка ORDER BY(если есть)</param>
@@ -72,7 +71,7 @@ namespace ClientRequestHandler.Data
         #endregion
 
         #region SendQuery
-        /// <summary>Отправить запрос на сервер</summary>
+        /// <summary>Отправка запроса на сервер</summary>
         /// <param name="sqlQuery">Запрос к базе данныхс</param>
         public static void SendQuery(string sqlQuery)
         {
@@ -92,7 +91,7 @@ namespace ClientRequestHandler.Data
 
 
         #region UpdateTables
-        /// <summary>Синхронизировать таблицы с базой данных</summary>
+        /// <summary>Синхронизация таблиц с базой данных</summary>
         public static void UpdateTables()
         {
             var updClients = Clients;
@@ -101,7 +100,7 @@ namespace ClientRequestHandler.Data
         #endregion
 
         #region InsertData
-        /// <summary>Вставить данные в таблицу базы данных</summary>
+        /// <summary>Вставка данных в таблицу базы данных</summary>
         /// <param name="data">Набор объектов с данными</param>
         public static void InsertData(IEnumerable<object> data)
         {
@@ -148,7 +147,7 @@ namespace ClientRequestHandler.Data
         #endregion
 
         #region DeleteData
-        /// <summary>Удалить строку из базы данных</summary>
+        /// <summary>Удаление строки из базы данных</summary>
         /// <param name="instance">Объект данных</param>
         public static void DeleteData(object instance)
         {
@@ -167,10 +166,10 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
-        #region UodateData
-        /// <summary>Изменить строку в базе данных</summary>
+        #region EditData
+        /// <summary>Изменение строки в базе данных</summary>
         /// <param name="instance">Объект данных</param>
-        public static void UpdateData(object instance)
+        public static void EditData(object instance)
         {
             if (instance == null) return;
 
@@ -200,7 +199,6 @@ namespace ClientRequestHandler.Data
             sqlQuery.Append($" WHERE Id={id};");
 
             SendQuery(sqlQuery.ToString());
-            UpdateTables();
         }
         #endregion
 
@@ -231,7 +229,7 @@ namespace ClientRequestHandler.Data
                 StartDate DATETIME,
                 Name VARCHAR(256) NOT NULL,
                 Description TEXT,
-                Status ENUM('New','InWork','Complete'),
+                Status ENUM('Новая', 'В работе', 'Выполнена'),
                 FOREIGN KEY (ClientId) REFERENCES clients(Id) ON DELETE RESTRICT
                 ); ";
 
@@ -286,7 +284,7 @@ namespace ClientRequestHandler.Data
         #endregion
 
         #region GenerateData
-        /// <summary>Сгенерировать случайные данные</summary>
+        /// <summary>Генерация случайных данных</summary>
         /// <param name="clientCount">Количество новых клиентов</param>
         /// <param name="requestCount">Количество новых заявок</param>
         public static void GenerateData(int clientCount, int requestCount)
@@ -311,7 +309,7 @@ namespace ClientRequestHandler.Data
                 requests[i].StartDate = new DateTime(2010, 1, 1).AddDays(rand.Next(5000)).AddMinutes(rand.Next(5000)).AddSeconds(rand.Next(5000));
                 requests[i].Name = $"Заявка {i + 1}";
                 requests[i].Description = GenerateString(rand, 30);
-                requests[i].Status = (ProgressStatus)rand.Next(3);
+                requests[i].Status = new string[] { "Новая", "В работе", "Выполнена" }[rand.Next(3)];
             }
             InsertData(requests);
         }

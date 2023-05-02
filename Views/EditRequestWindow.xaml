@@ -1,0 +1,54 @@
+﻿<Window x:Class="ClientRequestHandler.Views.EditRequestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         xmlns:l="clr-namespace:ClientRequestHandler.Views"
+        xmlns:vm="clr-namespace:ClientRequestHandler.ViewModels"
+        mc:Ignorable="d"
+        Title="Удаление заявок" Height="400" Width="700">
+    <Window.DataContext>
+        <vm:EditRequestWindowViewModel/>
+    </Window.DataContext>
+    <Grid Background="LightGray">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="40px"/>
+        </Grid.RowDefinitions>
+        <DataGrid Grid.Row="0" Grid.Column="1" 
+                              ItemsSource="{Binding Requests}"
+                              SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              AutoGenerateColumns="False" 
+                              HorizontalAlignment="Center" 
+                              Margin="5" 
+                              VerticalGridLinesBrush="Gray"
+                              HorizontalGridLinesBrush="Gray"
+                              AlternatingRowBackground="LightGray">
+            <DataGrid.Columns>
+                <DataGridTextColumn IsReadOnly="True" Header="Дата заявки" Binding="{Binding StartDate}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Наименование работ" Binding="{Binding Name}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Описание работ" Binding="{Binding Description}"/>
+                <DataGridTemplateColumn Header="Статус" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Status}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.StatusList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedItem="{Binding Status, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Row="1" Grid.Column="0" 
+                HorizontalAlignment="Center"
+                Content="Удалить выделенную строку"  Margin="5" Padding="5" 
+                Command="{Binding DeleteRequestCommand}"/>
+    </Grid>
+</Window>
