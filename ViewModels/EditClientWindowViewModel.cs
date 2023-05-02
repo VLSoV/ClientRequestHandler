@@ -12,7 +12,6 @@ namespace ClientRequestHandler.ViewModels
     {
 
         #region SelectedClient
-        /// <summary>Выбранная строка в таблице клиентов</summary>
         Client _SelectedClient;
         /// <summary>Выбранная строка в таблице клиентов</summary>
         public Client SelectedClient
@@ -20,11 +19,12 @@ namespace ClientRequestHandler.ViewModels
             get => _SelectedClient;
             set
             {
+                DBWorker.EditData(SelectedClient);
                 Set(ref _SelectedClient, value);
             }
         }
         #endregion
-        
+
         #region Clients
         /// <summary>Таблица клиентов</summary>
         private ObservableCollection<Client> _Clients;
@@ -48,19 +48,11 @@ namespace ClientRequestHandler.ViewModels
             else
                 DBWorker.DeleteData(SelectedClient);
         }
-
-        /// <summary>Изменение выбранного клиента</summary>
-        public ICommand EditClientCommand { get; set; }
-        private void OnEditClientExecuted(object obj)
-        {
-            DBWorker.EditData(SelectedClient);
-        }
         #endregion
 
         public EditClientWindowViewModel()
         {
             DeleteClientCommand = new RelayCommand(OnDeleteClientExecuted);
-            EditClientCommand = new RelayCommand(OnEditClientExecuted);
         }
     }
 }
