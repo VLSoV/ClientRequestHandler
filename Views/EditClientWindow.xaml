@@ -34,14 +34,10 @@
                 <DataGridTextColumn Header="Дата последней заявки" IsReadOnly="True" Binding="{Binding LastRequestDate}"/>
             </DataGrid.Columns>
         </DataGrid>
-
-        <StackPanel Grid.Row="1" Grid.Column="0" 
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center">
-            <Button Content="Удалить выделенную строку"  Margin="5" Padding="5" 
+        
+        <Button Grid.Row="1" Grid.Column="0" 
+                HorizontalAlignment="Center"
+                Content="Удалить выделенную строку" Margin="5" Padding="5" 
                 Command="{Binding DeleteClientCommand}"/>
-            <Button Content="Изменить выделенную строку в базе данных" Margin="150 5 5 5" Padding="5"
-                Command="{Binding EditClientCommand}"/>
-        </StackPanel>
     </Grid>
 </Window>

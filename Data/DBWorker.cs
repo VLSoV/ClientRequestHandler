@@ -111,10 +111,11 @@ namespace ClientRequestHandler.Data
         {
             if (tableName == null) tableName = TableName(instance);
 
+            int id = (int)instance.GetType().GetProperties().Where(x => x.Name == "Id").First().GetValue(instance);
             string name = instance.GetType().GetProperties().Where(x => x.Name == "Name").First().GetValue(instance).ToString();
 
-            if ((tableName == "clients" && Clients.Where(client => (client.Name == name)).Any()) ||
-                (tableName == "requests" && Requests().Where(request => (request.Name == name)).Any()))
+            if ((tableName == "clients" && _Clients.Where(client => (client.Name == name && client.Id != id)).Any()) ||
+                (tableName == "requests" && _Requests.Where(request => (request.Name == name && request.Id != id)).Any()))
             {
                 return true;
             }
