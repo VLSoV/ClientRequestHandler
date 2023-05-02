@@ -12,16 +12,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace ClientRequestHandler
+namespace ClientRequestHandler.Views
 {
     /// <summary>
-    /// Логика взаимодействия для ClientWindow.xaml
+    /// Логика взаимодействия для AddClientWindow.xaml
     /// </summary>
-    public partial class ClientWindow : Window
+    public partial class AddClientWindow : Window
     {
-        public ClientWindow()
+        public AddClientWindow()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
     }
 }

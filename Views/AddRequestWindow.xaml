@@ -1,0 +1,61 @@
+﻿<Window x:Class="ClientRequestHandler.Views.AddRequestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="clr-namespace:ClientRequestHandler.Views"
+        xmlns:vm="clr-namespace:ClientRequestHandler.ViewModels" 
+        mc:Ignorable="d"
+        Title="Добавление новых заявок" Height="400" Width="700">
+    <Window.DataContext>
+        <vm:AddRequestWindowViewModel/>
+    </Window.DataContext>
+    <Grid Background="LightGray">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30px"/>
+            <RowDefinition />
+            <RowDefinition Height="40px"/>
+        </Grid.RowDefinitions>
+        <ComboBox Grid.Row="0" 
+                  Text="{Binding SelectedClient.Name, TargetNullValue=Выберите клиента\, с которым связать добавляемые заявки, FallbackValue=Выберите клиента\, с которым связать добавляемые заявки}"
+                  ItemsSource="{Binding Clients}"
+                  DisplayMemberPath="Name"
+                  SelectedItem="{Binding SelectedClient}"
+                  IsEditable="True"
+                  Margin="5"
+                  Width="400"/>
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding Requests}"
+                  AutoGenerateColumns="False" 
+                  HorizontalAlignment="Center" 
+                  Margin="5" 
+                  VerticalGridLinesBrush="Gray"
+                  HorizontalGridLinesBrush="Gray"
+                  AlternatingRowBackground="LightGray">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Дата заявки" Binding="{Binding StartDate}"/>
+                <DataGridTextColumn Header="Наименование работ" Binding="{Binding Name}"/>
+                <DataGridTextColumn Header="Описание работ" Binding="{Binding Description}"/>
+                <DataGridTemplateColumn Header="Статус" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Status}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.StatusList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedItem="{Binding Status, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Row="2" Grid.Column="0" 
+                Content="Добавить записи в таблицу" 
+                VerticalAlignment="Center" HorizontalAlignment="Center" 
+                Margin="5" Padding="5"
+                Command="{Binding AddRequestCommand}"/>
+    </Grid>
+</Window>

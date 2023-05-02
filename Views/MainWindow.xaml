@@ -6,14 +6,35 @@
         xmlns:l="clr-namespace:ClientRequestHandler" 
         xmlns:vm="clr-namespace:ClientRequestHandler.ViewModels" 
         mc:Ignorable="d"
-        Title="Обработчик заявок" 
-        Height="650" Width="1000">
+        Title="Обработчик клиентов и заявок" 
+        Height="650" Width="1100">
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Gesture="CTRL+C" Command="{Binding OpenAddClientCommand}"/>
+        <KeyBinding Gesture="CTRL+SHIFT+C" Command="{Binding OpenEditClientCommand}"/>
+        <KeyBinding Gesture="CTRL+R" Command="{Binding OpenAddRequestCommand}"/>
+        <KeyBinding Gesture="CTRL+SHIFT+R" Command="{Binding OpenEditRequestCommand}"/>
+    </Window.InputBindings>
+
     <Grid Background="DarkGray">
-        <TabControl Margin="5" Background="LightGray"
-                    SelectedIndex="{Binding SelectedTabIndex}">
+        <Menu VerticalAlignment="Top" Height="20">
+            <MenuItem Header="Редактировать...">
+                <MenuItem Header="Синхронизировать таблицы с БД" Command="{Binding SyncCommand}"/>
+                <MenuItem Header="Клиенты">
+                    <MenuItem Header="Добавить записи" Command="{Binding OpenAddClientCommand}" InputGestureText="Ctrl+С"/>
+                    <MenuItem Header="Изменить/Удалить записи" Command="{Binding OpenEditClientCommand}" InputGestureText="CTRL+SHIFT+C"/>
+                </MenuItem>
+                <MenuItem Header="Заявки">
+                    <MenuItem Header="Добавить записи" Command="{Binding OpenEditRequestCommand}" InputGestureText="CTRL+R"/>
+                    <MenuItem Header="Удалить записи" Command="{Binding OpenEditRequestCommand}" InputGestureText="CTRL+SHIFT+R"/>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <TabControl Background="LightGray" 
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    Margin="5 25 5 5">
             <TabItem Header="Клиенты">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -25,8 +46,6 @@
                         <RowDefinition/>
                         <RowDefinition Height="150px"/>
                     </Grid.RowDefinitions>
-                    <TextBox Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-                             Text="{Binding CurrentNote, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="Список клиентов"/>
                     <DataGrid Grid.Row="1" Grid.Column="0"
@@ -50,11 +69,12 @@
                     </DataGrid>
 
                     <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
-                               Text="{Binding SelectedClient.ItemArray[1], StringFormat=Список заявок клиента {0}, FallbackValue=Список заявок}"/>
+                               Text="{Binding SelectedClient.Name, TargetNullValue=Выберите клиента\, чьи заявки будут отображаться, FallbackValue=Выберите клиента\, чьи заявки будут отображаться}"/>
                     <DataGrid Grid.Row="1" Grid.Column="1" 
                               ItemsSource="{Binding Requests}"
-                              IsReadOnly="True"
+                              SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
                               CanUserAddRows="False"
+                              CanUserDeleteRows="False"
                               AutoGenerateColumns="False" 
                               HorizontalAlignment="Center" 
                               Margin="5" 
@@ -62,17 +82,28 @@
                               HorizontalGridLinesBrush="Gray"
                               AlternatingRowBackground="LightGray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Дата заявки" Binding="{Binding StartDate}"/>
-                            <DataGridTextColumn Header="Наименование работ" Binding="{Binding Name}"/>
-                            <DataGridTextColumn Header="Описание работ" Binding="{Binding Description}"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding Status}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Дата заявки" Binding="{Binding StartDate}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Наименование работ" Binding="{Binding Name}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Описание работ" Binding="{Binding Description}"/>
+                            <DataGridTemplateColumn Header="Статус" >
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Status}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.StatusList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedItem="{Binding Status, Mode=TwoWay}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
-                    
-                    <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                               TextWrapping="Wrap" 
-                               Text="{Binding CurrentNote, FallbackValue=Выберите клиента, TargetNullValue=У данного клиента нет примечания}" 
-                               Margin="5"/>
+
+                    <ScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="5">
+                        <TextBlock TextWrapping="Wrap" Text="{Binding SelectedClient.Note, StringFormat=Примечание: {0}, FallbackValue=Выберите клиента, TargetNullValue=У данного клиента нет примечания}"/>
+                    </ScrollViewer>
                 </Grid>
             </TabItem>
 
@@ -84,6 +115,7 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <ComboBox Grid.Row="0"
+                              Text="Выберите клиента, чьи заявки нужно отображать"
                               ItemsSource="{Binding Clients}"
                               DisplayMemberPath="Name"
                               SelectedItem="{Binding SelectedClient}"
@@ -91,8 +123,9 @@
                               Width="400"/>
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding Requests}"
-                              IsReadOnly="True"
+                              SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
                               CanUserAddRows="False"
+                              CanUserDeleteRows="False"
                               AutoGenerateColumns="False" 
                               HorizontalAlignment="Center" 
                               Margin="5" 
@@ -100,10 +133,22 @@
                               HorizontalGridLinesBrush="Gray"
                               AlternatingRowBackground="LightGray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Дата заявки" Binding="{Binding StartDate}"/>
-                            <DataGridTextColumn Header="Наименование работ" Binding="{Binding Name}"/>
-                            <DataGridTextColumn Header="Описание работ" Binding="{Binding Description}"/>
-                            <DataGridTextColumn Header="Статус" Binding="{Binding Status}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Дата заявки" Binding="{Binding StartDate}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Наименование работ" Binding="{Binding Name}"/>
+                            <DataGridTextColumn IsReadOnly="True" Header="Описание работ" Binding="{Binding Description}"/>
+                            <DataGridTemplateColumn Header="Статус" >
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Status}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.StatusList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedItem="{Binding Status, Mode=TwoWay}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

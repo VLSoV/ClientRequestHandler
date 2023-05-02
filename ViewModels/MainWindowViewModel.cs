@@ -8,39 +8,47 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
+using ClientRequestHandler.Views;
+using System.Windows.Input;
+using ClientRequestHandler.Commands;
 
 namespace ClientRequestHandler.ViewModels
 {
     internal class MainWindowViewModel : ViewModel
     {
-        #region CurrentNote
-        /// <summary>Примечание к выбранному клиенту</summary>
-        string _CurrentNote;
-        /// <summary>Примечание к выбранному клиенту</summary>
-        public string CurrentNote 
-        { 
-            get => _CurrentNote; 
-            set => Set(ref _CurrentNote, value);
-        }
-        #endregion
 
         #region SelectedClient
+        Client _SelectedClient;
         /// <summary>Выбранная строка в таблице клиентов</summary>
-        DataRow _SelectedClient;
-        /// <summary>Выбранная строка в таблице клиентов</summary>
-        public object SelectedClient
+        public Client SelectedClient
         {
             get => _SelectedClient;
             set
             {
-                Set(ref _SelectedClient, (DataRow)(value as DataRowView)?.Row);
+                Set(ref _SelectedClient, value);
                 OnPropertyChanged(nameof(Requests));
+            }
+        }
+        #endregion
+        
+        #region SelectedRequest
+        Request _SelectedRequest;
+        /// <summary>Выбранная строка в таблице заявок</summary>
+        public Request SelectedRequest
+        {
+            get
+            {
+                return _SelectedRequest;
+            }
+            set
+            {
+                DBWorker.EditData(_SelectedRequest);
+                Set(ref _SelectedRequest, value);
             }
         }
         #endregion
 
         #region SelectedTabIndex
-        /// <summary>Индекс выбранной вкладки TabItem</summary>
         private int _selectedTabIndex;
         /// <summary>Индекс выбранной вкладки TabItem</summary>
         public int SelectedTabIndex
@@ -48,44 +56,70 @@ namespace ClientRequestHandler.ViewModels
             get => _selectedTabIndex;
             set
             {
-                Set(ref _selectedTabIndex, _selectedTabIndex);
+                Set(ref _selectedTabIndex, value);
                 SelectedClient = null;
                 OnPropertyChanged(nameof(Requests));
             }
         }
         #endregion
-
+        
         #region Clients
         /// <summary>Таблица клиентов</summary>
-        public DataTable Clients
+        public ObservableCollection<Client> Clients
         {
-            get => DBWorker.GetTable("clients", "", "ORDER BY Name");
+            get => DBWorker.Clients;
         }
         #endregion
 
         #region Requests
         /// <summary>Таблица заявок</summary>
-        public DataTable Requests
+        public ObservableCollection<Request> Requests
         {
-            get => DBWorker.GetTable("requests", (_SelectedClient is null) ? "" :  $"WHERE ClientId = {_SelectedClient["Id"]}", "ORDER BY StartDate DESC");
+            get => DBWorker.Requests(_SelectedClient);
         }
+        #endregion
+
+        #region StatusList
+        /// <summary>Список вариантов статуса прогресса заявки</summary>
+        public List<string> StatusList
+        {
+            get => new List<string>() { "Новая", "В работе", "Выполнена" };
+        }
+        #endregion
+
+        #region Commands
+        /// <summary>Открытие окна добавления клиента</summary>
+        public ICommand OpenAddClientCommand { get; set; }
+        private void OnAddClientExecuted(object obj) => new AddClientWindow() { Owner = App.Current.MainWindow }.Show();
+
+        /// <summary>Открытие окна редактирования/удаления клиента</summary>
+        public ICommand OpenEditClientCommand { get; set; }
+        private void OnEditClientExecuted(object obj) => new EditClientWindow() { Owner = App.Current.MainWindow }.Show();
+
+        /// <summary>Открытие окна добавления заявки</summary>
+        public ICommand OpenAddRequestCommand { get; set; }
+        private void OnAddRequestExecuted(object obj) => new AddRequestWindow() { Owner = App.Current.MainWindow }.Show();
+
+        /// <summary>Открытие окна удаления заявки</summary>
+        public ICommand OpenEditRequestCommand { get; set; }
+        private void OnEditRequestExecuted(object obj) => new EditRequestWindow() { Owner = App.Current.MainWindow }.Show();
+
+        /// <summary>Синхронизация с базой данных</summary>
+        public ICommand SyncCommand { get; set; }
+        private void OnSyncExecuted(object obj) => DBWorker.UpdateTables();
         #endregion
 
         public MainWindowViewModel()
         {
-            try
-            {
-                DBWorker.CreateData();
+            OpenAddClientCommand = new RelayCommand(OnAddClientExecuted);
+            OpenEditClientCommand = new RelayCommand(OnEditClientExecuted); 
+            OpenAddRequestCommand = new RelayCommand(OnAddRequestExecuted);
+            OpenEditRequestCommand = new RelayCommand(OnEditRequestExecuted);
+            SyncCommand = new RelayCommand(OnSyncExecuted);
 
-
-                ClientWindow clientWindow = new ClientWindow();
-                clientWindow.Show();
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Не удалось подключиться к базе данных!");
-            }
+            DBWorker.CreateTables();
+            DBWorker.CreateTriggers();
+            DBWorker.GenerateData(10,50);
         }
     }
 }
