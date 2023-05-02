@@ -34,8 +34,6 @@ namespace ClientRequestHandler.ViewModels
         public AddClientWindowViewModel()
         {
             AddClientCommand = new RelayCommand(OnAddClientExecuted, CanAddClientExecute);
-
-            Clients.Add(new Client() { Name="Добавленный клиент1", INN="11111"});
         }
     }
 }

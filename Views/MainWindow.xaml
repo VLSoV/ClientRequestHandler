@@ -6,7 +6,7 @@
         xmlns:l="clr-namespace:ClientRequestHandler" 
         xmlns:vm="clr-namespace:ClientRequestHandler.ViewModels" 
         mc:Ignorable="d"
-        Title="Обработчик заявок" 
+        Title="Обработчик клиентов и заявок" 
         Height="650" Width="1100">
     <Window.DataContext>
         <vm:MainWindowViewModel/>

@@ -119,7 +119,7 @@ namespace ClientRequestHandler.ViewModels
 
             DBWorker.CreateTables();
             DBWorker.CreateTriggers();
-            DBWorker.GenerateData(5,10);
+            DBWorker.GenerateData(10,50);
         }
     }
 }

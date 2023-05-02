@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -15,7 +16,7 @@ namespace ClientRequestHandler.Data
     internal static class DBWorker
     {
         /// <summary>Строка подключения к базе данных</summary>
-        static string ConnectionString = "server=localhost;user=root;database=test1;password=root;";
+        static string connectionString = ConfigurationManager.ConnectionStrings["MySqlConnectionString"].ConnectionString;
 
         #region Clients
         private static ObservableCollection<Client> _Clients = new ObservableCollection<Client>();
@@ -33,7 +34,7 @@ namespace ClientRequestHandler.Data
                 return _Clients;
             }
         }
-        #endregion
+        #endregion 
 
         #region Requests
         private static ObservableCollection<Request> _Requests = new ObservableCollection<Request>();
@@ -59,7 +60,7 @@ namespace ClientRequestHandler.Data
         /// <returns>Требуемая таблица</returns>
         public static DataTable GetTable(string tableName, string whereStr = null, string orderByStr = null)
         {
-            MySqlConnection connection = new MySqlConnection(ConnectionString);
+            MySqlConnection connection = new MySqlConnection(connectionString);
             connection.Open();
 
             MySqlCommand command = new MySqlCommand($"SELECT * FROM {tableName} {whereStr} {orderByStr};", connection);
@@ -70,6 +71,18 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
+        #region TableName
+        /// <summary>Имя таблицы по объекту её данных</summary>
+        public static string TableName(object instance)
+        {
+            if (instance is Client) 
+                return "clients";
+            if (instance is Request) 
+                return "requests";
+            throw new ArgumentException("Неизветная модель данных!");
+        }
+        #endregion
+
         #region SendQuery
         /// <summary>Отправка запроса на сервер</summary>
         /// <param name="sqlQuery">Запрос к базе данныхс</param>
@@ -77,7 +90,7 @@ namespace ClientRequestHandler.Data
         {
             try
             {
-                MySqlConnection connection = new MySqlConnection(ConnectionString);
+                MySqlConnection connection = new MySqlConnection(connectionString);
                 connection.Open();
                 new MySqlCommand(sqlQuery.ToString(), connection).ExecuteNonQuery();
                 connection.Close();
@@ -89,6 +102,25 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
+        #region IsNameUnique
+        /// <summary>Проверка уникальности имени в таблице</summary>
+        /// <param name="instance">Объект, имя которого надо проверить</param>
+        /// <param name="tableName">Таблица, в которой идёт проверка</param>
+        /// <returns>true если уникально, false если нет</returns>
+        public static bool IsNameUnique(object instance, string tableName = null)
+        {
+            if (tableName == null) tableName = TableName(instance);
+
+            string name = instance.GetType().GetProperties().Where(x => x.Name == "Name").First().GetValue(instance).ToString();
+
+            if ((tableName == "clients" && Clients.Where(client => (client.Name == name)).Any()) ||
+                (tableName == "requests" && Requests().Where(request => (request.Name == name)).Any()))
+            {
+                return true;
+            }
+            return false;
+        }
+        #endregion
 
         #region UpdateTables
         /// <summary>Синхронизация таблиц с базой данных</summary>
@@ -99,6 +131,7 @@ namespace ClientRequestHandler.Data
         }
         #endregion
 
+
         #region InsertData
         /// <summary>Вставка данных в таблицу базы данных</summary>
         /// <param name="data">Набор объектов с данными</param>
@@ -106,10 +139,7 @@ namespace ClientRequestHandler.Data
         {
             if (data == null || !data.Any()) return;
 
-            string tableName;
-            if (data.First() is Client) tableName = "clients";
-            else if (data.First() is Request) tableName = "requests";
-            else throw new ArgumentException("Неизветная модель данных!");
+            string tableName = TableName(data.First());
 
             StringBuilder sqlQuery = new StringBuilder($"INSERT INTO {tableName} (");  
             foreach(PropertyInfo prop in data.First().GetType().GetProperties().OrderBy(x => x.MetadataToken))
@@ -121,6 +151,15 @@ namespace ClientRequestHandler.Data
 
             foreach (object dataInstance in data)
             {
+                if (IsNameUnique(dataInstance, tableName))
+                {
+                    string name = dataInstance.GetType().GetProperties().Where(x => x.Name == "Name").First().GetValue(dataInstance).ToString();
+                    var result = MessageBox.Show($"Запись с именем \"{name}\" уже уществует в таблице \"{tableName}\"! Вы уверены, что хотите добавить еще одну?",
+                                             $"Запись с именем \"{name}\" уже уществует!", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.No) 
+                        return;
+                }
+
                 sqlQuery.Append('(');
                 foreach (PropertyInfo prop in dataInstance.GetType().GetProperties().OrderBy(x => x.MetadataToken))
                 {
@@ -173,10 +212,17 @@ namespace ClientRequestHandler.Data
         {
             if (instance == null) return;
 
-            string tableName;
-            if (instance is Client) tableName = "clients";
-            else if (instance is Request) tableName = "requests";
-            else throw new ArgumentException("Неизветная модель данных!");
+            string tableName = TableName(instance);
+
+            if (IsNameUnique(instance, tableName))
+            {
+                string name = instance.GetType().GetProperties().Where(x => x.Name == "Name").First().GetValue(instance).ToString();
+                var result = MessageBox.Show($"Запись с именем \"{name}\" уже уществует в таблице \"{tableName}\"! Вы уверены, что хотите добавить еще одну?",
+                                             $"Запись с именем \"{name}\" уже уществует!", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.No)
+                    return;
+            }
+
             string id = instance.GetType().GetProperties().Where(x => x.Name == "Id").First().GetValue(instance).ToString();
 
             StringBuilder sqlQuery = new StringBuilder($"UPDATE {tableName} SET ");
