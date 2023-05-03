@@ -16,22 +16,9 @@
 
 В качестве моделей в программе реализовано 2 класса:
 
-Класс Client со свойствами
--Id 
--Name
--INN 
--ActivityField
--RequestCount
--LastRequestDate
--Note
+Класс Client со свойствами Id, Name, INN, ActivityField, RequestCount, LastRequestDate, Note
 
-Класс Request со свойствами
--Id
--ClientId 
--StartDate
--Name
--Description
--Status 
+Класс Request со свойствами Id, ClientId , StartDate, Name, Description, Status 
 
 В качестве ключей в обоих таблицах используются отдельные поля Id, следовательно, от остальных полей не требуется уникальность. Тем не менее, при  попытке добавить клиента с неуникальным именем или изменить имя клиента на неуникальное имя - возникает диалоговое окно с предупреждением.
 Свойства RequestCount и LastRequestDate нельзя редактировать в программе, они задаются дефолтными значениями и обновляются с помощью триггеров в самой базе данных.
