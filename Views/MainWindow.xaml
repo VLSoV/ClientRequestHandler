@@ -27,7 +27,7 @@
                     <MenuItem Header="Изменить/Удалить записи" Command="{Binding OpenEditClientCommand}" InputGestureText="CTRL+SHIFT+C"/>
                 </MenuItem>
                 <MenuItem Header="Заявки">
-                    <MenuItem Header="Добавить записи" Command="{Binding OpenEditRequestCommand}" InputGestureText="CTRL+R"/>
+                    <MenuItem Header="Добавить записи" Command="{Binding OpenAddRequestCommand}" InputGestureText="CTRL+R"/>
                     <MenuItem Header="Удалить записи" Command="{Binding OpenEditRequestCommand}" InputGestureText="CTRL+SHIFT+R"/>
                 </MenuItem>
             </MenuItem>
