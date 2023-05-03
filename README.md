@@ -16,11 +16,11 @@
 
 В качестве моделей в программе реализовано 2 класса:
 Класс Client со свойствами
--Id 
--Name
--INN 
--ActivityField
--RequestCount
+.Id 
+.Name
+.INN 
+.ActivityField
+.RequestCount
 -LastRequestDate
 -Note
 Класс Request со свойствами
