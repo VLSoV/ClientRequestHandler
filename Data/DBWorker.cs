@@ -109,10 +109,11 @@ namespace ClientRequestHandler.Data
         /// <returns>true если уникально, false если нет</returns>
         public static bool IsNameUnique(object instance, string tableName = null)
         {
+	    if(instance == null) return false;
             if (tableName == null) tableName = TableName(instance);
 
-            int id = (int)instance.GetType().GetProperties().Where(x => x.Name == "Id").First().GetValue(instance);
-            string name = instance.GetType().GetProperties().Where(x => x.Name == "Name").First().GetValue(instance).ToString();
+            int id = (int)instance.GetType().GetProperties().Where(x => x.Name == "Id")?.First()?.GetValue(instance);
+            string name = instance.GetType().GetProperties().Where(x => x.Name == "Name")?.First()?.GetValue(instance)?.ToString();
 
             if ((tableName == "clients" && _Clients.Where(client => (client.Name == name && client.Id != id)).Any()) ||
                 (tableName == "requests" && _Requests.Where(request => (request.Name == name && request.Id != id)).Any()))
